@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './styles/globals.css';  // Ensure your global styles are imported
+import 'regenerator-runtime/runtime';
 import Header from './components/layout/Header';  // Import the Header component
 import Navbar from './components/layout/Navbar';  // Import the Navbar component
 import Footer from './components/layout/Footer';  // Import the Footer component
@@ -20,6 +21,8 @@ import Chat from './pages/Chat';
 import Testimonials from './pages/Testimonials';
 import Demo from './pages/demo';
 import LearnSign from './pages/LearnSign';
+import Dictphone from './pages/Dictphone';
+
 //import Header from './components/layout/heder';
 function App() {
   return (
@@ -48,6 +51,7 @@ function App() {
           <Route path="/testimonials" element={<Testimonials/>}/>
           <Route path="/demo" element={<Demo />} />
           <Route path="/learnsign" element={<LearnSign/>}/>
+          <Route path='/dictphone' element={<Dictphone/>}/>
 
         </Routes>
       </div>

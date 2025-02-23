@@ -27,6 +27,7 @@ const LearnSign = () => {
   const [activeCategory, setActiveCategory] = useState("alphabets");
   const [searchTerm, setSearchTerm] = useState("");
   const [modelColor, setModelColor] = useState("#6366f1"); // Default color
+  const [yOffset, setYOffset] = useState(0.2); // Model Y-Offset
 
   const componentRef = useRef({});
   const { current: ref } = componentRef;
@@ -74,13 +75,11 @@ const LearnSign = () => {
       alpha: true,
       preserveDrawingBuffer: true,
     });
-    
     ref.renderer.shadowMap.enabled = true;
     ref.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     ref.renderer.outputEncoding = THREE.sRGBEncoding;
     ref.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     ref.renderer.toneMappingExposure = 1.0;
-    ref.renderer.setClearColor(0x000000, 0);
 
     // Attach renderer to container and size it to that container
     const canvasContainer = document.getElementById("canvas-container");
@@ -127,19 +126,12 @@ const LearnSign = () => {
       requestAnimationFrame(animate);
 
       if (ref.renderer && ref.scene && ref.camera) {
-        // Subtle breathing/idle movement if no animations
-        if (ref.avatar && ref.animations.length === 0 && !ref.pending) {
-          const time = Date.now() * 0.001;
-          ref.avatar.position.y += box.min.y < 0 ? Math.abs(box.min.y) + 1 : 1;
-
-          ref.avatar.rotation.y = Math.sin(time * 0.2) * 0.05;
-          ref.avatar.position.set(0, 5, 0);
-
-        }
         ref.renderer.render(ref.scene, ref.camera);
       }
     };
-    animate();
+    ref.animationLoop = animate; // Store the animation loop in ref
+
+    animate(); // Start the animation loop
 
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -174,20 +166,19 @@ const LearnSign = () => {
         if (ref.avatar) {
           ref.scene.remove(ref.avatar);
         }
+
         ref.avatar = gltf.scene;
 
-        // Center the model
+        // Center the model and offset it upwards
         const box = new THREE.Box3().setFromObject(ref.avatar);
         const center = box.getCenter(new THREE.Vector3());
         ref.avatar.position.x = -center.x;
-        ref.avatar.position.y = -center.y+0.55;
-        ref.avatar.position.y += box.min.y < 0 ? Math.abs(box.min.y) : 0;
+        ref.avatar.position.y = -center.y + yOffset;
         ref.avatar.position.z = -center.z;
-        
 
         ref.scene.add(ref.avatar);
-        defaultPose(ref);
-        ref.renderer.render(ref.scene, ref.camera);
+        defaultPose(ref); // Apply the default pose after the model has loaded
+        ref.renderer.render(ref.scene, ref.camera); // Render the scene after loading model
       },
       (xhr) => {
         console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
@@ -196,7 +187,7 @@ const LearnSign = () => {
         console.error("Error loading model:", error);
       }
     );
-  }, [bot, modelColor]);
+  }, [bot, modelColor, yOffset]);
 
   // Update model color in case the user changes it after the avatar is loaded
   useEffect(() => {
@@ -247,6 +238,7 @@ const LearnSign = () => {
       ref.flag = true;
       setTimeout(() => {
         ref.flag = false;
+        resetModelPosition(); // Reset position after animation completes
       }, pause);
       ref.animations.shift();
     }
@@ -254,13 +246,25 @@ const LearnSign = () => {
     ref.renderer.render(ref.scene, ref.camera);
   };
 
+  const resetModelPosition = () => {
+    if (ref.avatar) {
+      const box = new THREE.Box3().setFromObject(ref.avatar);
+      const center = box.getCenter(new THREE.Vector3());
+      ref.avatar.position.x = -center.x;
+      ref.avatar.position.y = -center.y + yOffset; // Applying yOffset to maintain position
+      ref.avatar.position.z = -center.z;
+      defaultPose(ref); // Reset the pose to the default after repositioning
+      ref.renderer.render(ref.scene, ref.camera); // Re-render the scene after changes
+    }
+  };
+
   // Clear existing animations and run new animation
   const runAnimation = (item, type) => {
-    // 1) Clear existing so we always start fresh
-    
+    // 1) Clear existing animations
     ref.animations = [];
+    defaultPose(ref);
 
-    // 2) Push new instructions from alphabets/words modules
+    // 2) Push new animation instructions from alphabets/words modules
     if (type === "alphabet") {
       alphabets[item](ref);
     } else {
@@ -270,12 +274,10 @@ const LearnSign = () => {
     // 3) If not currently animating, start the animation loop
     if (!ref.pending) {
       ref.pending = true;
-      requestAnimationFrame(ref.animate);
+      ref.animate(); // Use the stored animate function from the ref
     }
   };
 
-  
-  
   // Filter items
   const getFilteredItems = (category) => {
     if (category === "alphabets") {
@@ -380,7 +382,6 @@ const LearnSign = () => {
                   Words
                 </button>
               </div>
-
               <div className="p-4 max-h-96 overflow-y-auto">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2">
                   {getFilteredItems(activeCategory).map((item) => (
@@ -391,7 +392,8 @@ const LearnSign = () => {
                         runAnimation(
                           item,
                           activeCategory === "alphabets" ? "alphabet" : "word"
-                        )  }
+                        )
+                      }
                     >
                       <span className="font-medium text-slate-700">{item}</span>
                     </button>
@@ -412,10 +414,7 @@ const LearnSign = () => {
                   className="text-purple-600 hover:text-purple-700 font-medium text-sm flex items-center gap-1"
                   onClick={() => {
                     if (ref.avatar) {
-                     
                       defaultPose(ref);
-                    } else {
-                      console.error("Avatar not loaded yet.");
                     }
                   }}
                 >
@@ -447,150 +446,126 @@ const LearnSign = () => {
               </div>
 
               <div className="p-4 space-y-6">
-                {/* Avatar selection */}
+                {/* Model Y-Offset Adjustment */}
                 <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">
-                    Select Avatar
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <label
+                    htmlFor="yOffset"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Model Y-Offset:
+                  </label>
+                  <input
+                    type="number"
+                    id="yOffset"
+                    className="mt-1 p-2 w-full border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    value={yOffset}
+                    onChange={(e) => setYOffset(parseFloat(e.target.value))}
+                    step="0.05"
+                  />
+                </div>
+                {/* Model Color Adjustment */}
+                <div>
+                  <label
+                    htmlFor="modelColor"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Model Color:
+                  </label>
+                  <input
+                    type="color"
+                    id="modelColor"
+                    className="mt-1 p-2 w-full border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    value={modelColor}
+                    onChange={(e) => setModelColor(e.target.value)}
+                  />
+                </div>
+
+                {/* Bot Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">
+                    Select Avatar:
+                  </label>
+                  <div className="mt-2 flex space-x-4">
                     <button
-                      onClick={() => setBot(xbot)}
-                      className={`p-2 rounded-lg border ${
+                      className={`py-2 px-4 rounded-lg border ${
                         bot === xbot
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-slate-200"
+                          ? "border-purple-500 bg-purple-50 text-purple-700"
+                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
                       } transition-colors`}
+                      onClick={() => setBot(xbot)}
                     >
-                      <div className="aspect-square rounded-lg bg-slate-100 flex items-center justify-center mb-2">
-                        <User className="h-8 w-8 text-slate-400" />
-                      </div>
-                      <div className="text-sm font-medium text-center">
-                        Avatar 1
-                      </div>
+                      XBot
                     </button>
                     <button
-                      onClick={() => setBot(ybot)}
-                      className={`p-2 rounded-lg border ${
+                      className={`py-2 px-4 rounded-lg border ${
                         bot === ybot
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-slate-200"
+                          ? "border-purple-500 bg-purple-50 text-purple-700"
+                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
                       } transition-colors`}
+                      onClick={() => setBot(ybot)}
                     >
-                      <div className="aspect-square rounded-lg bg-slate-100 flex items-center justify-center mb-2">
-                        <User className="h-8 w-8 text-slate-400" />
-                      </div>
-                      <div className="text-sm font-medium text-center">
-                        Avatar 2
-                      </div>
+                      YBot
                     </button>
                   </div>
                 </div>
 
-                {/* Color selection */}
+                {/* Animation Speed Adjustment */}
                 <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">
-                    Avatar Color
-                  </h3>
-                  <div className="grid grid-cols-5 gap-2">
-                    {colorSchemes.map((color) => (
-                      <button
-                        key={color.value}
-                        onClick={() => setModelColor(color.value)}
-                        className={`w-full aspect-square rounded-full border-2 transition-all ${
-                          modelColor === color.value
-                            ? "border-slate-800 scale-110"
-                            : "border-slate-200"
-                        }`}
-                        style={{ backgroundColor: color.value }}
-                        title={color.name}
-                      />
-                    ))}
-                  </div>
-                  <div className="mt-3 flex items-center">
-                    <Palette className="h-4 w-4 text-slate-500 mr-2" />
-                    <label className="text-xs text-slate-500">Custom color:</label>
-                    <input
-                      type="color"
-                      value={modelColor}
-                      onChange={(e) => setModelColor(e.target.value)}
-                      className="ml-2 w-6 h-6 p-0 border-0 rounded cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Animation speed */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-sm font-medium text-slate-700">
-                      Animation Speed
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      {speed.toFixed(2)}
-                    </span>
-                  </div>
+                  <label
+                    htmlFor="speed"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Animation Speed:
+                  </label>
                   <input
                     type="range"
-                    min="0.05"
-                    max="0.50"
+                    id="speed"
+                    className="mt-1 w-full"
+                    min="0.01"
+                    max="0.5"
                     step="0.01"
                     value={speed}
                     onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
                   />
-                  <div className="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>Slow</span>
-                    <span>Fast</span>
-                  </div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Current speed: {speed}
+                  </p>
                 </div>
 
-                {/* Pause time */}
+                {/* Pause Time Adjustment */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-sm font-medium text-slate-700">
-                      Pause Duration
-                    </h3>
-                    <span className="text-sm text-slate-500">{pause} ms</span>
-                  </div>
+                  <label
+                    htmlFor="pause"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Pause Time (ms):
+                  </label>
                   <input
                     type="range"
+                    id="pause"
+                    className="mt-1 w-full"
                     min="0"
                     max="2000"
                     step="100"
                     value={pause}
-                    onChange={(e) => setPause(parseInt(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                    onChange={(e) => setPause(parseInt(e.target.value, 10))}
                   />
-                  <div className="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>None</span>
-                    <span>2 sec</span>
-                  </div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Current pause: {pause} ms
+                  </p>
                 </div>
-              </div>
-
-              {/* Additional info */}
-              <div className="p-4 bg-purple-50 border-t border-purple-100">
-                <h3 className="text-sm font-medium text-purple-800 mb-2">
-                  Learning Tips
-                </h3>
-                <ul className="text-sm text-purple-700 space-y-1">
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Practice each sign multiple times</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Pay attention to hand positioning</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Use the slower speed for detailed learning</span>
-                  </li>
-                </ul>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      <footer className="bg-white border-t border-slate-200 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
+          &copy; {new Date().getFullYear()} Sign Language Learning App. All
+          rights reserved.
+        </div>
+      </footer>
     </div>
   );
 };
