@@ -40,7 +40,7 @@ const LearnSign = () => {
 
     // Create scene
     ref.scene = new THREE.Scene();
-    ref.scene.background = new THREE.Color(0xf8fafc);
+    ref.scene.background = new THREE.Color(0xffffff);
 
     // Lighting
     const spotLight = new THREE.SpotLight(0xffffff, 1.5);
@@ -98,7 +98,7 @@ const LearnSign = () => {
     // Add floor
     const floorGeometry = new THREE.PlaneGeometry(10, 10);
     const floorMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf1f5f9,
+      color: 0xffffff,
       roughness: 0.8,
       metalness: 0.2,
       side: THREE.DoubleSide,
@@ -134,6 +134,7 @@ const LearnSign = () => {
 
           ref.avatar.rotation.y = Math.sin(time * 0.2) * 0.05;
           ref.avatar.position.set(0, 5, 0);
+          
 
         }
         ref.renderer.render(ref.scene, ref.camera);
@@ -145,6 +146,8 @@ const LearnSign = () => {
       window.removeEventListener("resize", handleResize);
       if (ref.renderer) {
         ref.renderer.dispose();
+        ref.renderer.forceContextLoss();
+      ref.renderer = null;
       }
     };
   }, []);
@@ -166,7 +169,7 @@ const LearnSign = () => {
                 color: new THREE.Color(modelColor),
                 roughness: 0.5,
                 metalness: 0.3,
-                skinning: true,
+                //skinning: true,
               });
             }
           }
@@ -180,8 +183,10 @@ const LearnSign = () => {
         const box = new THREE.Box3().setFromObject(ref.avatar);
         const center = box.getCenter(new THREE.Vector3());
         ref.avatar.position.x = -center.x;
-        ref.avatar.position.y = -center.y+0.55;
-        ref.avatar.position.y += box.min.y < 0 ? Math.abs(box.min.y) : 0;
+        //ref.avatar.position.y = -center.y+0.55;
+        //ref.avatar.position.y += box.min.y < 0 ? Math.abs(box.min.y) : 0;
+        ref.avatar.position.y = -center.y + (box.min.y < 0 ? Math.abs(box.min.y) : 0) + 0.55;
+
         ref.avatar.position.z = -center.z;
         
 
@@ -274,6 +279,54 @@ const LearnSign = () => {
     }
   };
 
+
+  //reload model
+  const reloadModel = () => {
+    const loader = new GLTFLoader();
+    loader.load(
+      bot,
+      (gltf) => {
+        gltf.scene.traverse((child) => {
+          child.frustumCulled = false;
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // Apply color
+          if (child.material) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: new THREE.Color(modelColor),
+              roughness: 0.5,
+              metalness: 0.3,
+            });
+          }
+        });
+  
+        if (ref.avatar) {
+          ref.scene.remove(ref.avatar);
+        }
+        ref.avatar = gltf.scene;
+  
+        // Center the model
+        const box = new THREE.Box3().setFromObject(ref.avatar);
+        const center = box.getCenter(new THREE.Vector3());
+        ref.avatar.position.x = -center.x;
+        ref.avatar.position.y = -center.y + (box.min.y < 0 ? Math.abs(box.min.y) : 0) + 0.55;
+        ref.avatar.position.z = -center.z;
+  
+        ref.scene.add(ref.avatar);
+        defaultPose(ref);
+        ref.renderer.render(ref.scene, ref.camera);
+      },
+      (xhr) => {
+        console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
+      },
+      (error) => {
+        console.error("Error loading model:", error);
+      }
+    );
+  };
+  
+  
+
   
   
   // Filter items
@@ -304,29 +357,9 @@ const LearnSign = () => {
   ];
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="bg-slate-50 min-h-screen pt-20">
       {/* Header */}
-      <header className="bg-gradient-to-r from-purple-900 to-indigo-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center space-x-2">
-                <ArrowLeft className="h-5 w-5" />
-                <span className="font-medium">Back to Home</span>
-              </Link>
-              <h1 className="text-2xl font-bold">Learn Sign Language</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-full hover:bg-white/10">
-                <Share2 className="h-5 w-5" />
-              </button>
-              <button className="p-2 rounded-full hover:bg-white/10">
-                <Info className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -387,11 +420,15 @@ const LearnSign = () => {
                     <button
                       key={item}
                       className="py-3 px-4 text-center rounded-lg border border-slate-200 hover:bg-purple-50 hover:border-purple-200 transition-colors"
-                      onClick={() =>
-                        runAnimation(
-                          item,
-                          activeCategory === "alphabets" ? "alphabet" : "word"
-                        )  }
+                      onClick={() => {
+                        reloadModel(); // First, reload the model
+                        setTimeout(() => {
+                          runAnimation(
+                            item,
+                            activeCategory === "alphabets" ? "alphabet" : "word"
+                          );
+                        }, 400); // Delay ensures reload completes before running animation
+                      }}
                     >
                       <span className="font-medium text-slate-700">{item}</span>
                     </button>
@@ -412,8 +449,8 @@ const LearnSign = () => {
                   className="text-purple-600 hover:text-purple-700 font-medium text-sm flex items-center gap-1"
                   onClick={() => {
                     if (ref.avatar) {
-                     
-                      defaultPose(ref);
+                     //console.log("avatar loaded",ref.avatar);
+                      reloadModel();
                     } else {
                       console.error("Avatar not loaded yet.");
                     }

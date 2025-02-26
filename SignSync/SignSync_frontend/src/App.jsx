@@ -5,7 +5,6 @@ import Header from './components/layout/Header';  // Import the Header component
 import Navbar from './components/layout/Navbar';  // Import the Navbar component
 import Footer from './components/layout/Footer';  // Import the Footer component
 import Home from './pages/Home';
-import Works from './pages/HowItWorks';
 import Features from './pages/Features';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
@@ -29,13 +28,11 @@ function App() {
     <Router>
       {/* Add Header and Navbar outside of Routes so they are always displayed */}
       <Header />
-      <Navbar />
 
       {/* Main content area where routes will be rendered */}
       <div className="container mx-auto p-4">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/works" element={<Works />} />
           <Route path="/features" element={<Features />} />
           <Route path="/chat" element={<Chat/>} />
           <Route path="/about" element={<About />} />
@@ -50,7 +47,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/testimonials" element={<Testimonials/>}/>
           <Route path="/demo" element={<Demo />} />
-          <Route path="/learnsign" element={<LearnSign/>}/>
+          <Route path="/learn" element={<LearnSign/>}/>
           <Route path='/dictphone' element={<Dictphone/>}/>
 
         </Routes>

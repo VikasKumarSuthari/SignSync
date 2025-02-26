@@ -53,7 +53,7 @@ const About = () => {
             inclusive world where everyone can communicate freely and naturally.
           </p>
           <Button 
-            onClick={() => navigate('/demo')}
+            onClick={() => navigate('/dictphone')}
             className="bg-purple-500 hover:bg-purple-400 text-white flex items-center gap-2 mx-auto"
           >
             Try It Now <ArrowRight className="h-4 w-4" />
@@ -106,7 +106,7 @@ const About = () => {
             </p>
             <Button
               variant="outline"
-              onClick={() => navigate('/technology')}
+              onClick={() => navigate('/features')}
               className="flex items-center gap-2 mx-auto text-purple-500 border-purple-500 hover:bg-purple-50"
             >
               Learn More About Our Technology <ArrowRight className="h-4 w-4" />
@@ -127,7 +127,7 @@ const About = () => {
             </p>
             <div className="flex gap-4 justify-center">
               <Button 
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/dictphone')}
                 className="bg-white text-purple-500 hover:bg-purple-50"
               >
                 Try Demo

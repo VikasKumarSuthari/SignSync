@@ -8,7 +8,8 @@ const Navbar = () => {
   const navigation = [
     { name: 'Home', path: '/' },
     { name: 'Features', path: '/features' },
-    { name: 'How it Works', path: '/works' },
+    { name: 'How it Works', path: '/dictphone' },
+    { name: 'Learn' , path: '/learn'},
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];

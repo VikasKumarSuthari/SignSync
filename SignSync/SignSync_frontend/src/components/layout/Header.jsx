@@ -22,20 +22,7 @@ const Header = () => {
           <Navbar />
           
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/login" 
-              className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Login
-            </Link>
-            <Link 
-              to="/signup" 
-              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Sign Up
-            </Link>
-          </div>
+          
         </div>
       </div>
     </header>
