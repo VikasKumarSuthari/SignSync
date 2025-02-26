@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Phone, Mail, Send, HandMetal, MessageSquare, Globe } from 'lucide-react';
+import axios from "axios";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -25,23 +26,39 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(formData);
     setStatus({ type: 'info', message: 'Sending message...' });
-    
+
+    // try {
+    //   // Here you would typically make an API call to your backend
+    //   // await api.post('/contact', formData);
+
+    //   setStatus({
+    //     type: 'success',
+    //     message: 'Message sent successfully! We will get back to you soon.'
+    //   });
+    //   setFormData({ name: '', email: '', subject: '', message: '' });
+    // } catch (error) {
+    //   setStatus({
+    //     type: 'error',
+    //     message: 'Failed to send message. Please try again later.'
+    //   });
+    // }
+
+
     try {
-      // Here you would typically make an API call to your backend
-      // await api.post('/contact', formData);
-      
-      setStatus({
-        type: 'success',
-        message: 'Message sent successfully! We will get back to you soon.'
-      });
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      const response = await axios.post("http://localhost:3000/en/sendFeedbackEmail", formData);
+
+      if (response.data.success) {
+        setStatus({ type: "success", message: "Message sent successfully! We will get back to you soon." });
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setStatus({ type: "error", message: "Failed to send message. Please try again later." });
+      }
     } catch (error) {
-      setStatus({
-        type: 'error',
-        message: 'Failed to send message. Please try again later.'
-      });
+      setStatus({ type: "error", message: "Something went wrong. Please try again." });
     }
+
   };
 
   return (
@@ -141,7 +158,7 @@ const Contact = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label htmlFor="subject" className="text-sm font-medium">
                     Subject
@@ -177,8 +194,8 @@ const Contact = () => {
                   </Alert>
                 )}
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-purple-500 hover:bg-purple-400 text-white"
                 >
                   <Send className="mr-2 h-4 w-4" />

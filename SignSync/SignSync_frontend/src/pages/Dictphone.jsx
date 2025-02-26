@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { Mic, MicOff, PlayCircle, StopCircle, RotateCcw } from 'lucide-react';
+import axios from "axios";
 
 const Dictphone = () => {
   const {
@@ -27,6 +28,24 @@ const Dictphone = () => {
     );
   }
 
+   // Function to send transcript data to the backend
+
+
+const sendTranscript = async () => {
+  if (!transcript) {
+    console.log("No transcript available to send.");
+    return;
+  }
+
+  try {
+    const response = await axios.post("http://localhost:3000/en/transcript", { transcript });
+
+    console.log("Server Response:", response.data.message);
+  } catch (error) {
+    console.error("Error sending transcript:", error);
+  }
+};
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl border border-slate-200 shadow-sm">
       <div className="flex items-center justify-between mb-6">
@@ -49,7 +68,7 @@ const Dictphone = () => {
             Start
           </button>
           <button
-            onClick={SpeechRecognition.stopListening}
+            onClick={()=>{SpeechRecognition.stopListening();sendTranscript();}}
             className="inline-flex items-center gap-2 rounded-md bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
           >
             <StopCircle className="h-4 w-4" />
