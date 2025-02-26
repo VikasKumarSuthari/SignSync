@@ -5,8 +5,7 @@ const Footer = () => {
   const footerLinks = {
     product: [
       { name: 'Features', path: '/features' },
-      { name: 'How it Works', path: '/works' },
-      { name: 'Mobile App', path: '/mobile' },
+      { name: 'How it Works', path: '/dictphone' },
       { name: 'FAQ', path: '/faq' },
     ],
     company: [

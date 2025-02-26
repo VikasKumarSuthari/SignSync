@@ -174,7 +174,7 @@ const FAQ = () => {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/demo')}
+                onClick={() => navigate('/dictphone')}
                 className="border-purple-500 text-purple-500 hover:bg-purple-50"
               >
                 Try Demo
