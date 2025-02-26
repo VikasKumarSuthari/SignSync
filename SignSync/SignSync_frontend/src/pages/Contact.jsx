@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Phone, Mail, Send, HandMetal, MessageSquare, Globe } from 'lucide-react';
+import { Mail, Clock, Phone, Send } from 'lucide-react';
+import contactImage from '../assets/image4.png';
+import axios from "axios";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -25,22 +27,32 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
     setStatus({ type: 'info', message: 'Sending message...' });
-    
+
+    // try {
+    //   setStatus({
+    //     type: 'success',
+    //     message: 'Message sent successfully! We will get back to you soon.'
+    //   });
+    //   setFormData({ name: '', email: '', subject: '', message: '' });
+    // } catch (error) {
+    //   setStatus({
+    //     type: 'error',
+    //     message: 'Failed to send message. Please try again later.'
+    //   });
+    // }
     try {
-      // Here you would typically make an API call to your backend
-      // await api.post('/contact', formData);
-      
-      setStatus({
-        type: 'success',
-        message: 'Message sent successfully! We will get back to you soon.'
-      });
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      const response = await axios.post("http://localhost:3000/en/sendFeedbackEmail", formData);
+
+      if (response.data.success) {
+        setStatus({ type: "success", message: "Message sent successfully! We will get back to you soon." });
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setStatus({ type: "error", message: "Failed to send message. Please try again later." });
+      }
     } catch (error) {
       setStatus({ type: "error", message: "Something went wrong. Please try again." });
     }
-
   };
 
   return (
@@ -119,92 +131,29 @@ const Contact = () => {
           </Card>
         </div>
 
-          {/* Contact Form */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Send us a Message</CardTitle>
-              <CardDescription>
-                Whether you're a user, developer, or organization interested in our technology, we'd love to hear from you.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
-                      Name
-                    </label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Your name"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="your@email.com"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium">
-                    Subject
-                  </label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    placeholder="What would you like to discuss?"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">
-                    Message
-                  </label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    placeholder="Your message..."
-                    rows={5}
-                    required
-                  />
-                </div>
-
-                {status.message && (
-                  <Alert variant={status.type === 'error' ? 'destructive' : 'default'}>
-                    <AlertDescription>{status.message}</AlertDescription>
-                  </Alert>
-                )}
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-purple-500 hover:bg-purple-400 text-white"
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Message
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Contact Form */}
+        <Card className="mt-12">
+          <CardHeader className="text-center">
+            <CardTitle>Send us a Message</CardTitle>
+            <CardDescription>
+              Fill out the form below, and our team will get back to you as soon as possible.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" required />
+                <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" required />
+              </div>
+              <Input id="subject" name="subject" value={formData.subject} onChange={handleChange} placeholder="What would you like to discuss?" required />
+              <Textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder="Your message..." rows={5} required />
+              {status.message && <Alert variant={status.type === 'error' ? 'destructive' : 'default'}><AlertDescription>{status.message}</AlertDescription></Alert>}
+              <Button type="submit" className="w-full bg-purple-500 hover:bg-purple-400 text-white">
+                <Send className="mr-2 h-4 w-4" />Send Message
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
