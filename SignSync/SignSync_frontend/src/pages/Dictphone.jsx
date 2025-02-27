@@ -12,12 +12,7 @@ const Dictphone = () => {
   } = useSpeechRecognition();
 
   // Automatically restart listening if it stops unexpectedly.
-  useEffect(() => {
-    // If you want continuous listening, start with continuous: true.
-    if (!listening) {
-      SpeechRecognition.startListening({ continuous: true });
-    }
-  }, [listening]);
+ 
 
   if (!browserSupportsSpeechRecognition) {
     return (
