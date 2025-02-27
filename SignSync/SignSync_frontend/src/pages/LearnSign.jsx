@@ -427,7 +427,7 @@ const LearnSign = () => {
                             item,
                             activeCategory === "alphabets" ? "alphabet" : "word"
                           );
-                        }, 400); // Delay ensures reload completes before running animation
+                        }, 800); // Delay ensures reload completes before running animation
                       }}
                     >
                       <span className="font-medium text-slate-700">{item}</span>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, MessageSquare, Brain, Globe, Clock, HandMetal, Mic, CheckCircle } from 'lucide-react';
+import { ArrowRight, MessageSquare, Brain, Globe, Clock, HandMetal, Mic, CheckCircle ,ScanFace} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AboutSection = ({ title, description, icon: Icon }) => (
@@ -34,9 +34,9 @@ const About = () => {
       description: "Precise audio processing that accurately captures natural language nuances and context."
     },
     {
-      icon: Globe,
-      title: "Multiple Sign Languages",
-      description: "Supports various sign languages including ASL (American Sign Language) and IS (International Sign)."
+      icon: ScanFace, 
+      title: "Interactive 3D Learning",
+      description: "Engage in immersive learning experiences with 3D avatars that demonstrate sign language gestures dynamically."
     }
   ];
 

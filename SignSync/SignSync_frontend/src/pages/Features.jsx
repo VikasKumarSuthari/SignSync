@@ -8,7 +8,8 @@ import {
   Clock,
   Shield,
   Layout,
-  Globe
+  Globe,
+  ScanFace
 } from 'lucide-react';
 import avatarImage from '../assets/image2.png';
 
@@ -19,9 +20,9 @@ const mainFeatures = [
     description: "Instantly converts spoken words into accurate sign language."
   },
   {
-    icon: Languages,
-    title: "Multi-Language Support",
-    description: "Supports translation of speech into Indian Sign Language (ISL) and American Sign Language (ASL)."
+    icon: ScanFace, 
+    title: "Interactive 3D Learning",
+    description: "Engage in immersive learning experiences with 3D avatars that demonstrate sign language gestures dynamically."
   },
   {
     icon: HandMetal,

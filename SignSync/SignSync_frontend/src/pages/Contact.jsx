@@ -132,28 +132,29 @@ const Contact = () => {
         </div>
 
         {/* Contact Form */}
-        <Card className="mt-12">
-          <CardHeader className="text-center">
-            <CardTitle>Send us a Message</CardTitle>
-            <CardDescription>
-              Fill out the form below, and our team will get back to you as soon as possible.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" required />
-                <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" required />
-              </div>
-              <Input id="subject" name="subject" value={formData.subject} onChange={handleChange} placeholder="What would you like to discuss?" required />
-              <Textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder="Your message..." rows={5} required />
-              {status.message && <Alert variant={status.type === 'error' ? 'destructive' : 'default'}><AlertDescription>{status.message}</AlertDescription></Alert>}
-              <Button type="submit" className="w-full bg-purple-500 hover:bg-purple-400 text-white">
-                <Send className="mr-2 h-4 w-4" />Send Message
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <Card className="mt-12 p-6">
+  <CardHeader className="text-center">
+    <CardTitle>Send us a Message</CardTitle>
+    <CardDescription>
+      Fill out the form below, and our team will get back to you as soon as possible.
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-6">
+        <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" className="p-3" required />
+        <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" className="p-3" required />
+      </div>
+      <Input id="subject" name="subject" value={formData.subject} onChange={handleChange} placeholder="What would you like to discuss?" className="p-3" required />
+      <Textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder="Your message..." rows={5} className="p-3" required />
+      {status.message && <Alert variant={status.type === 'error' ? 'destructive' : 'default'}><AlertDescription>{status.message}</AlertDescription></Alert>}
+      <Button type="submit" className="w-full bg-purple-500 hover:bg-purple-400 text-white py-3">
+        <Send className="mr-2 h-5 w-5" />Send Message
+      </Button>
+    </form>
+  </CardContent>
+</Card>
+
       </div>
     </div>
   );
