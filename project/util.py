@@ -109,7 +109,7 @@ def getISL(sentence):
                 if letter in data_dict:
                     links.append(data_dict[letter])
                     print(
-                        f"Mapping found for '{token_lower}': {data_dict[token_lower]}"
+                        f"Mapping found for '{letter}': {data_dict[letter]}"
                     )
                 else:
                     links.append(default_file)
