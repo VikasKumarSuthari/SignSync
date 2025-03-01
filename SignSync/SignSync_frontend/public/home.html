@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Indian Sign Language Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- CWASA CSS -->
+  <link rel="stylesheet" href="http://vhg.cmp.uea.ac.uk/tech/jas/vhg2021/cwa/cwasa.css" />
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body onload="initializeCWASA();" style="overflow-x:hidden;">
+  <!-- Main Section -->
+  <section class="hero">
+    <div class="hero-inner" id="section-1">
+      <div class="isl">
+        <h1 style="margin-left: 9%">Indian Sign Language Converter</h1>
+        <div class="w3-row-padding" style="color:black">
+          <div class="container">
+            <div class="w3-third">
+              <div id="controls">
+                <button id="recordButton">Record</button>
+                <button id="pauseButton" disabled>Pause</button>
+                <button id="stopButton" disabled>Stop</button>
+                <button id="changeText" disabled>Change Text</button>
+              </div>
+              <div id="formats" style="font-size: medium;">
+                Press the button to start recording
+              </div>
+              <div class="content__inner">
+                <input type="text" name="speechToText" id="speechToText" placeholder="TEXT">
+                <br><br>
+              </div>
+              <input type="text" name="textToISL" id="textToISL" placeholder="ISL GLOSS">
+            </div>
+          </div>
+          <br>
+          <div class="container" style="margin-left:100px; width:800px; justify-content:center;">
+            <center>
+              <!-- CWASA Avatar Panel Container -->
+              <div class="CWASAPanel av0"></div>
+            </center>
+          </div>
+        </div>
+        <br><br><br>
+      </div>
+    </div>
+  </section>
+  
+  <!-- CWASA JavaScript Library -->
+  <!--<script type="text/javascript" src="./../static/allcsa.js"></script>-->
+
+  <!-- <script type="text/javascript" src="http://vhg.cmp.uea.ac.uk/tech/jas/vhg2021/cwa/allcsa.js"></script> -->
+  
+  <!-- Global Playback Control Script -->
+  <script>
+    // Global variables for playback control
+    var sigmlFiles = [];
+    var currentIndex = 0;
+
+    // Initialize CWASA with configuration from documentation:
+    // The actual animation speed is given by 2^(currSpeed/rateSpeed)
+    // Here we set initSpeed to -1.0 (slow speed) and rateSpeed to 5 (default rate)
+    function initializeCWASA() {
+      CWASA.init({
+        useClientConfig: false,
+        avSettings: [{
+          width: 384,
+          height: 320,
+          initAv: 'anna',
+          // Base URL for local SiGML files
+          initSiGMLURL: window.location.origin + '/static/signs/',
+          initSpeed: -1.0,
+          rateSpeed: 5
+        }]
+      });
+
+      // When the avatar is ready, start playback if we have SiGML URLs.
+      CWASA.addHook('avatarready', function() {
+        console.log(currentIndex);
+        if (sigmlFiles.length > 0) {
+          currentIndex = 0;
+          console.log("Avatar ready. Starting playback with:", sigmlFiles[currentIndex]);
+          CWASA.playSiGMLURL(sigmlFiles[currentIndex]);
+          currentIndex++;
+          console.log(currentIndex);
+        } else {
+          console.log("Avatar ready but no SiGML files available yet.");
+        }
+      });
+
+      // When an animation completes, play the next file.
+      CWASA.addHook('animationcomplete', function() {
+        playNextSigml();
+      });
+    }
+
+    // Global function to restart playback with new SiGML URLs.
+    function restartPlayback(newSigmlFiles) {
+      sigmlFiles = newSigmlFiles;
+      currentIndex = 0;
+      if (sigmlFiles.length > 0) {
+        console.log("Restarting playback with:", sigmlFiles[0]);
+        CWASA.playSiGMLURL(sigmlFiles[0]);
+        currentIndex++;
+      } else {
+        console.log("No SiGML files available for playback.");
+      }
+      playNextSigml()
+    }
+
+    // Global function to play the next file in sequence.
+    function playNextSigml() {
+    if (sigmlFiles.length === 0) {
+        console.log("No SiGML files available for playback.");
+        return;
+    }
+
+    if (currentIndex < sigmlFiles.length) {
+        console.log("Playing next SiGML file:", sigmlFiles[currentIndex]);
+
+        // Play the next SiGML file
+        CWASA.playSiGMLURL(sigmlFiles[currentIndex]);
+
+        // Increment the index only when animation is complete
+        CWASA.addHook('animidle', function() {
+            console.log("Animation complete for:", sigmlFiles[currentIndex]);
+            currentIndex++;
+            playNextSigml();  // Call itself to play the next file
+        });
+
+    } 
+    // else {
+    //     console.log("All SiGML files played. Restarting sequence.");
+    //     currentIndex = 0;
+    //     CWASA.playSiGMLURL(sigmlFiles[currentIndex]);
+    //     currentIndex++;
+    // }
+}
+  </script>
+  
+  <!-- Recorder JS and custom app.js -->
+  <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

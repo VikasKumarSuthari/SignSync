@@ -2,8 +2,11 @@ from speech_recognition_file import convert_speech_to_text
 import util
 from flask import Flask, render_template, request, url_for, jsonify
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
 
 sentence = ''
 video_links = []  # This will hold your local SiGML filenames
@@ -27,6 +30,7 @@ def change_sentence():
     global sentence
     sentence = str(request.data)[2:-1]
     message = {'sentence': sentence}
+    print(message)
     return jsonify(message)
 
 @app.route('/isl_gloss', methods=['GET', 'POST'])
@@ -58,10 +62,10 @@ def glossToVideo():
 @app.route('/text_to_isl', methods=['GET'])
 def getISLFromText():
     text = str(request.args['query'])
+    print(text)
     isl_gloss_list, links = util.getISL(text)
     return jsonify(links)
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    print("Starting server on port:", port)
-    app.run(debug=True, port=port)
+    app.run(host="0.0.0.0", port=5000, debug=True) 
+    

@@ -19,8 +19,9 @@ import Signup from './pages/Signup';
 import Chat from './pages/Chat';
 import Testimonials from './pages/Testimonials';
 import Demo from './pages/demo';
-import LearnSign from './pages/LearnSign';
+//import LearnSign from './pages/LearnSign';
 import Dictphone from './pages/Dictphone';
+import Model from './pages/ModelPage';
 
 //import Header from './components/layout/heder';
 function App() {
@@ -47,8 +48,9 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/testimonials" element={<Testimonials/>}/>
           <Route path="/demo" element={<Demo />} />
-          <Route path="/learn" element={<LearnSign/>}/>
+          {/*<Route path="/learn" element={<LearnSign/>}/>*/}
           <Route path='/dictphone' element={<Dictphone/>}/>
+          <Route path='/model' element={<Model/>}/>
 
         </Routes>
       </div>

@@ -27,7 +27,7 @@ const Footer = () => {
           <div className="col-span-1">
             <Link to="/" className="flex items-center">
               <img 
-                src="./src/assets/LogoT.png" 
+                src="./src/assets/logo.jpg" 
                 alt="MechAI Logo" 
                 className="h-8 w-auto"
               />

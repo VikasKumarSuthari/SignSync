@@ -1,2 +1,6 @@
 .DS_STORE
 /venv
+/myenv
+/myenv1
+/myenv2
+/_pycache_
