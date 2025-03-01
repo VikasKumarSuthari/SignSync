@@ -1,18 +1,18 @@
-from nltk.corpus import wordnet
-from nltk.parse.stanford import StanfordParser
-from nltk.stem import WordNetLemmatizer
-from nltk.tree import *
 import os
 import ssl
+
 import nltk
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
+from nltk.parse.stanford import StanfordParser
+from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+from nltk.tree import *
 
 # Download necessary NLTK packages
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('punkt')
-nltk.download('stopwords')
+nltk.download("wordnet")
+nltk.download("averaged_perceptron_tagger")
+nltk.download("punkt")
+nltk.download("stopwords")
 
 # Allow unverified HTTPS context (if needed)
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -21,11 +21,14 @@ BASE_DIR = os.getcwd()
 print("BASE_DIR:", BASE_DIR)
 
 # Set up environment for Stanford Parser (adjust paths as needed)
-os.environ['CLASSPATH'] = os.path.join(BASE_DIR, 'stanford-parser-full-2018-10-17')
-os.environ['STANFORD_MODELS'] = os.path.join(
-    BASE_DIR, 'stanford-parser-full-2018-10-17/edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz')
-os.environ['JAVAHOME'] = 'C:\\Program Files\\Java\\jdk-16.0.1\\bin\\java.exe'
-print("CLASSPATH:", os.environ.get('CLASSPATH'))
+os.environ["CLASSPATH"] = os.path.join(BASE_DIR, "stanford-parser-full-2018-10-17")
+os.environ["STANFORD_MODELS"] = os.path.join(
+    BASE_DIR,
+    "stanford-parser-full-2018-10-17/edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz",
+)
+os.environ["JAVAHOME"] = "C:\\Program Files\\Java\\jdk-16.0.1\\bin\\java.exe"
+print("CLASSPATH:", os.environ.get("CLASSPATH"))
+
 
 # --- New: Create mapping from filenames.txt ---
 def create_sigml_mapping(mapping_file):
@@ -39,23 +42,26 @@ def create_sigml_mapping(mapping_file):
                 mapping[key] = file_name
     return mapping
 
+
 # Create data_dict mapping from your filenames file
 data_dict = create_sigml_mapping("filenames.txt")
 # Now, for example, data_dict["you"] will be "you.sigml"
 
 lemmatizer = WordNetLemmatizer()
 
+
 def pos_tagger(nltk_tag):
-    if nltk_tag.startswith('J'):
+    if nltk_tag.startswith("J"):
         return wordnet.ADJ
-    elif nltk_tag.startswith('V'):
+    elif nltk_tag.startswith("V"):
         return wordnet.VERB
-    elif nltk_tag.startswith('N'):
+    elif nltk_tag.startswith("N"):
         return wordnet.NOUN
-    elif nltk_tag.startswith('R'):
+    elif nltk_tag.startswith("R"):
         return wordnet.ADV
     else:
         return None
+
 
 def label_parse_subtrees(parent_tree):
     tree_traversal_flag = {}
@@ -63,22 +69,30 @@ def label_parse_subtrees(parent_tree):
         tree_traversal_flag[sub_tree.treeposition()] = 0
     return tree_traversal_flag
 
+
 def handle_noun_clause(i, tree_traversal_flag, modified_parse_tree, sub_tree):
-    if tree_traversal_flag[sub_tree.treeposition()] == 0 and tree_traversal_flag[sub_tree.parent().treeposition()] == 0:
+    if (
+        tree_traversal_flag[sub_tree.treeposition()] == 0
+        and tree_traversal_flag[sub_tree.parent().treeposition()] == 0
+    ):
         tree_traversal_flag[sub_tree.treeposition()] = 1
         modified_parse_tree.insert(i, sub_tree)
         i += 1
     return i, modified_parse_tree
 
+
 def handle_verb_prop_clause(i, tree_traversal_flag, modified_parse_tree, sub_tree):
     for child_sub_tree in sub_tree.subtrees():
-        if child_sub_tree.label() == "NP" or child_sub_tree.label() == 'PRP':
-            if (tree_traversal_flag[child_sub_tree.treeposition()] == 0 and 
-                tree_traversal_flag[child_sub_tree.parent().treeposition()] == 0):
+        if child_sub_tree.label() == "NP" or child_sub_tree.label() == "PRP":
+            if (
+                tree_traversal_flag[child_sub_tree.treeposition()] == 0
+                and tree_traversal_flag[child_sub_tree.parent().treeposition()] == 0
+            ):
                 tree_traversal_flag[child_sub_tree.treeposition()] = 1
                 modified_parse_tree.insert(i, child_sub_tree)
                 i += 1
     return i, modified_parse_tree
+
 
 def getISL(sentence):
     filtered_sentence = remove_stop_words(sentence)
@@ -91,40 +105,51 @@ def getISL(sentence):
             links.append(data_dict[token_lower])
             print(f"Mapping found for '{token_lower}': {data_dict[token_lower]}")
         else:
-            print(f"Mapping NOT found for token: '{token_lower}'. Using default: {default_file}")
-            links.append(default_file)
+            for letter in token_lower:
+                if letter in data_dict:
+                    links.append(data_dict[letter])
+                    print(
+                        f"Mapping found for '{token_lower}': {data_dict[token_lower]}"
+                    )
+                else:
+                    links.append(default_file)
     return tokens, links
-
-
 
 
 def modify_tree_structure(parent_tree):
     tree_traversal_flag = label_parse_subtrees(parent_tree)
-    modified_parse_tree = Tree('ROOT', [])
+    modified_parse_tree = Tree("ROOT", [])
     i = 0
     for sub_tree in parent_tree.subtrees():
         if sub_tree.label() == "NP":
-            i, modified_parse_tree = handle_noun_clause(i, tree_traversal_flag, modified_parse_tree, sub_tree)
+            i, modified_parse_tree = handle_noun_clause(
+                i, tree_traversal_flag, modified_parse_tree, sub_tree
+            )
         if sub_tree.label() == "VP" or sub_tree.label() == "PRP":
-            i, modified_parse_tree = handle_verb_prop_clause(i, tree_traversal_flag, modified_parse_tree, sub_tree)
+            i, modified_parse_tree = handle_verb_prop_clause(
+                i, tree_traversal_flag, modified_parse_tree, sub_tree
+            )
     for sub_tree in parent_tree.subtrees():
         for child_sub_tree in sub_tree.subtrees():
             if len(child_sub_tree.leaves()) == 1:
-                if (tree_traversal_flag[child_sub_tree.treeposition()] == 0 and 
-                    tree_traversal_flag[child_sub_tree.parent().treeposition()] == 0):
+                if (
+                    tree_traversal_flag[child_sub_tree.treeposition()] == 0
+                    and tree_traversal_flag[child_sub_tree.parent().treeposition()] == 0
+                ):
                     tree_traversal_flag[child_sub_tree.treeposition()] = 1
                     modified_parse_tree.insert(i, child_sub_tree)
                     i += 1
     return modified_parse_tree
 
+
 def remove_stop_words(sentence):
     sentence = sentence.lower()
     pos_tagged = nltk.pos_tag(nltk.word_tokenize(sentence))
     print("POS Tagged:", pos_tagged)
-    remove_tags = ['TO', 'POS', 'MD', 'FW', 'CC', 'JJR', 'JJS', 'UH', 'RP', 'SYM', 'IN']
+    remove_tags = ["TO", "POS", "MD", "FW", "CC", "JJR", "JJS", "UH", "RP", "SYM", "IN"]
     lemmatized_sentence = []
     for word, tag in pos_tagged:
-        if word in ['a', 'an', 'the', 'is']:
+        if word in ["a", "an", "the", "is"]:
             continue
         if tag in remove_tags:
             continue
@@ -140,6 +165,7 @@ def remove_stop_words(sentence):
             lemmatized_sentence1.append(lemmatizer.lemmatize(word, tag))
     return " ".join(lemmatized_sentence1)
 
+
 def convert_eng_to_isl(input_string):
     tokens = input_string.split()
     if len(tokens) == 1:
@@ -153,6 +179,7 @@ def convert_eng_to_isl(input_string):
     modified_parse_tree = modify_tree_structure(parent_tree)
     print(modified_parse_tree.pretty_print())
     return modified_parse_tree.leaves()
+
 
 # def getISL(sentence):
 #     filtered_sentence = remove_stop_words(sentence)
